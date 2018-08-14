@@ -12,10 +12,6 @@ from UQCourses.Program import Program
 
 import json
 from LoadCourses.Encoder import CourseJSONEncoder
-scraper = UQCourseScraper.deserialise("UQ-course-2018-sem-1")
-with open('UQ_courses_2018_s1.json', 'w') as f:
-    f.write(CourseJSONEncoder(indent=2).encode(scraper.programs))
-raise Exception()
 programs = UQCourseScraper.create_all_programs("https://my.uq.edu.au/programs-courses/browse.html?level=ugpg", "2018-1")
 print(programs)
 
