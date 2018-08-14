@@ -49,10 +49,6 @@ class UQCourseScraper:
             outputPrograms[program] = UQCourseScraper.create_program(baseSource + link)
             print("Loaded " + str(len(outputPrograms[program].plans)) + " plans.")
 
-            # Save this program
-            UQCourseScraper.serialise(outputPrograms, saveLocation)
-
-
         return outputPrograms
 
 
