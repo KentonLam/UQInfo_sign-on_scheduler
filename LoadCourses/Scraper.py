@@ -1,9 +1,10 @@
 import pickle
 from abc import abstractmethod
 from typing import List, Dict
+from collections import namedtuple
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from UQCourses.Course import Course
 from UQCourses.Program import Program
@@ -32,14 +33,32 @@ class UQCourseScraper:
         baseSource = "/".join(firstPage.url.split("/")[:-2])
 
         programs = []
+        # Type for storing basic properties of a program
+        program_struct = namedtuple('program_struct', ('name', 'link', 'majors'))
+        # Type for storing data about a major. Should be stored inside a 
+        # program_struct.
+        major_struct = namedtuple('major_struct', ('major', 'link'))
+        # Current program as a program_struct. 
+        # Used to add majors.
+        current_program = None
         for value in soupedPage.find_all("td", {"class": "title"}):
             # print(value.get('href'))
-            if value.getText().strip() != "" and len(value.getText().strip()) != 1:
+            if value.getText().strip() and value.find('a') is not None:
                 links = value.find('a')
-                if links is None:
-                    continue
+                if 'name' in links.attrs:
+                    continue # In this case, it is a letter heading.
+                current_program = program_struct(
+                    value.getText().strip(), links.attrs['href'], [])
+                programs.append(current_program)
 
-                programs.append((value.getText().strip(), links.attrs['href']))
+            major_link = value.next_sibling.next_sibling
+            if isinstance(major_link, Tag) and major_link.find('a'):
+                major_text = major_link.text.strip()
+                if major_text:
+                    current_program.majors.append(
+                        major_struct(major_text, major_link.find('a').attrs['href'])
+                    )
+
 
 
         outputPrograms = {}
@@ -48,6 +67,8 @@ class UQCourseScraper:
             # outputPrograms[program] = Program(baseSource + link)
             outputPrograms[program] = UQCourseScraper.create_program(baseSource + link)
             print("Loaded " + str(len(outputPrograms[program].plans)) + " plans.")
+
+
 
         return outputPrograms
 
@@ -61,7 +82,8 @@ class UQCourseScraper:
         # Find name
         name = "TODO: find name"
 
-        courseList = UQCourseScraper.find_course_list(soupedPage)
+        course_code = sourcePage.split('acad_prog=')[-1]
+        courseList = '/programs-courses/plan_display.html?acad_plan='+course_code
 
         plans = UQCourseScraper.load_plans(baseURL + courseList, baseURL)
 
@@ -73,6 +95,7 @@ class UQCourseScraper:
     """
     @abstractmethod
     def find_course_list(soupedPage: BeautifulSoup):
+        raise NotImplementedError()
         courseList = []
         
         for link in soupedPage.find_all('a'):
