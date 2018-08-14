@@ -10,6 +10,12 @@ from UQCourses.Program import Program
 
 # program = Program("https://my.uq.edu.au/programs-courses/program.html?acad_prog=2342")
 
+import json
+from LoadCourses.Encoder import CourseJSONEncoder
+scraper = UQCourseScraper.deserialise("UQ-course-2018-sem-1")
+with open('UQ_courses_2018_s1.json', 'w') as f:
+    f.write(CourseJSONEncoder(indent=2).encode(scraper.programs))
+raise Exception()
 programs = UQCourseScraper.create_all_programs("https://my.uq.edu.au/programs-courses/browse.html?level=ugpg", "2018-1")
 print(programs)
 
@@ -21,11 +27,15 @@ print(programs)
 # print(course)
 exit()
 
+
+
 scraper = UQCourseScraper("https://my.uq.edu.au/programs-courses/browse.html?level=ugpg")
 scraper.find_all_courses()
 scraper.serialise("UQ-course-2018-sem-1")
 
-scraper = UQCourseScraper.deserialise("UQ-course-2018-sem-1")
+
+
+
 
 programs = scraper.get_single_programs()
 courses = list(scraper.get_all_course(programs[0]))
