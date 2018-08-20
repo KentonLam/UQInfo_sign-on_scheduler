@@ -25,7 +25,7 @@ class UQCourseScraper:
     Scrapes the given landing page which contains a list of programs and a link to the program page. Then creates and 
     returns a project name to Program object mapping.
     """
-    @classmethod
+    @staticmethod
     def create_all_programs(sourcePage: str, saveLocation: str=None) -> Dict[str, Program]:
         firstPage = requests.get(sourcePage)
         soupedPage = BeautifulSoup(firstPage.text, "lxml")
@@ -73,7 +73,7 @@ class UQCourseScraper:
         return outputPrograms
 
 
-    @classmethod
+    @staticmethod
     def create_program(sourcePage: str) -> Program:        
         page = requests.get(sourcePage)
         soupedPage =  BeautifulSoup(page.text, "lxml")
@@ -93,7 +93,7 @@ class UQCourseScraper:
     """
     Find the location of the course list for this course.
     """
-    @classmethod
+    @staticmethod
     def find_course_list(soupedPage: BeautifulSoup):
         raise NotImplementedError()
         courseList = []
@@ -106,7 +106,7 @@ class UQCourseScraper:
         return courseList
 
 
-    @classmethod
+    @staticmethod
     def load_plans(courseListURL: str, baseURL: str) -> Dict[str, List[Course]]:
         page = requests.get(courseListURL)
         soupedCourseList = BeautifulSoup(page.text, "lxml")
@@ -187,7 +187,7 @@ class UQCourseScraper:
 
     """
     """
-    @classmethod
+    @staticmethod
     def load_course(link: str, courseCode: str, courseName: str, units: int) -> Course:
         print("Source: ", link)
         page = requests.get(link)
@@ -203,7 +203,7 @@ class UQCourseScraper:
     """
     Finds extended infomation on the course from the given link
     """
-    @classmethod
+    @staticmethod
     def get_course_info(soupedPage: BeautifulSoup) -> Dict[str, str]:
         courseInfo = {}
 
@@ -221,7 +221,7 @@ class UQCourseScraper:
         return courseInfo
 
 
-    @classmethod
+    @staticmethod
     def get_timetable_info(page: BeautifulSoup) -> List[Semester]:
         offeredSemesters = []
         counter = 1
@@ -315,7 +315,7 @@ class UQCourseScraper:
         return output
 
 
-    @classmethod
+    @staticmethod
     def serialise(scraper: 'UQCourseScraper', outLocation: str):
         if outLocation is None:
             return
@@ -327,7 +327,7 @@ class UQCourseScraper:
 
         outFile.close()
 
-    @classmethod
+    @staticmethod
     def deserialise(inLocation: str) -> 'Scraper':
         inFile = open(inLocation, "rb")
 

@@ -49,7 +49,7 @@ class Course:
         fileOut.close()
 
 
-    @classmethod
+    @staticmethod
     def deserialise(self, inLocation: str) -> None:
         fileIn = open(inLocation, "rb")
 
