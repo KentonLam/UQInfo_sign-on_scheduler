@@ -5,6 +5,8 @@ from collections import namedtuple
 
 import requests
 from bs4 import BeautifulSoup, Tag
+import re
+import string
 
 from UQCourses.Course import Course
 from UQCourses.Program import Program
@@ -19,6 +21,71 @@ class UQCourseScraper:
     def __init__(self, sourcePage: str=""):
         self.sourcePage = sourcePage
         self.programs = {}
+
+
+    @classmethod
+    def get_programs(cls, html_lines):
+        ProgramTuple = namedtuple('ProgramTuple', ('code', 'name'))
+        PROGRAM_LINE_REGEX = re.compile(
+            r'^\s*'
+            +re.escape('<a href="/programs-courses/program.html?acad_prog=')
+            +r'([A-Z0-9]+)">\s*$')
+
+        code = None
+        for line in html_lines:
+            if code is not None:
+                yield ProgramTuple(code, 
+                    line.strip().replace('</a>', '', 1).strip())
+                code = None
+                continue
+            
+            match = PROGRAM_LINE_REGEX.match(line)
+            if match is not None:
+                code = match[1]
+
+
+    @classmethod
+    def get_plans(cls, html_lines):
+        PlanTuple = namedtuple('PlanTuple', 
+            ('code', 'program_code', 'name', 'type'))
+        PLAN_LINE_REGEX = re.compile(
+            r'^\s*'
+            +re.escape('<a href="/programs-courses/plan.html?acad_plan=')
+            +r'([A-Z0-9]+)">([^<]+)</a>\s*$')
+        PLAN_TYPE_REGEX = re.compile(r'^\s*<td class="type">([^<]+)</td>')
+
+        code = None
+        name = None
+        for line in html_lines:
+            if code and name:
+                type_match = PLAN_TYPE_REGEX.match(line)
+                if type_match:
+                    yield PlanTuple(
+                        code, 
+                        code.lstrip(string.ascii_uppercase),
+                        name, 
+                        type_match[1]
+                    )
+                    code = name = None
+                continue
+            
+            match = PLAN_LINE_REGEX.match(line)
+            if match:
+                code, name = match.groups()
+
+    @classmethod
+    def scrape_programs(cls, program_codes):
+        for code in program_codes:
+            yield cls.scrape_one_program(code)
+
+    PROGRAM_URL_BASE = 'https://my.uq.edu.au/programs-courses/program.html?acad_prog='
+    
+    @classmethod
+    def scrape_one_program(cls, code):
+        page = requests.get(cls.PROGRAM_URL_BASE + code)
+
+
+
 
 
     """
