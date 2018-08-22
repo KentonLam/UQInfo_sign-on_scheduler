@@ -5,6 +5,7 @@ from collections import namedtuple
 
 import requests
 from bs4 import BeautifulSoup, Tag
+from typing import Iterable
 import re
 import string
 
@@ -12,6 +13,10 @@ from UQCourses.Course import Course
 from UQCourses.Program import Program
 from UQCourses.Semester import Semester
 
+
+ProgramTuple = namedtuple('ProgramTuple', ('code', 'name'))
+PlanTuple = namedtuple('PlanTuple', ('code', 'program_code', 'name', 'type'))
+PartTuple = namedtuple('PartTuple', 'none')
 
 class UQCourseScraper:
 
@@ -22,10 +27,21 @@ class UQCourseScraper:
         self.sourcePage = sourcePage
         self.programs = {}
 
+    """
+    Parses an iterable object and returns tuples containing data about 
+    programs (e.g. degrees, diplomas, etc.).
 
+    The iterable should yield lines from the HTML page:
+    https://my.uq.edu.au/programs-courses/browse.html?level=ugpg
+
+    Args:
+        html_lines (iterable): iterable of lines of the HTML page. 
+
+    Returns:
+        Iterable[ProgramTuple]: iterator of programs, as namedtuples.
+    """
     @classmethod
     def get_programs(cls, html_lines):
-        ProgramTuple = namedtuple('ProgramTuple', ('code', 'name'))
         PROGRAM_LINE_REGEX = re.compile(
             r'^\s*'
             +re.escape('<a href="/programs-courses/program.html?acad_prog=')
@@ -44,10 +60,21 @@ class UQCourseScraper:
                 code = match[1]
 
 
+    """
+    Parses an iterable object and returns tuples containing data about 
+    plans (e.g. majors).
+
+    The iterable should yield lines from the HTML page:
+    https://my.uq.edu.au/programs-courses/browse.html?level=ugpg
+
+    Args:
+        html_lines (iterable): iterable of lines of the HTML page. 
+
+    Returns:
+        Iterable[PlanTuple]: iterator of plans, as namedtuples.
+    """
     @classmethod
     def get_plans(cls, html_lines):
-        PlanTuple = namedtuple('PlanTuple', 
-            ('code', 'program_code', 'name', 'type'))
         PLAN_LINE_REGEX = re.compile(
             r'^\s*'
             +re.escape('<a href="/programs-courses/plan.html?acad_plan=')
